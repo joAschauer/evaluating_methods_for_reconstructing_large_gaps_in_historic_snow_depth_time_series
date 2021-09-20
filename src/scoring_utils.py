@@ -40,6 +40,26 @@ def dHS1(series):
         result = np.count_nonzero(series.values >= 1)
     return result
 
+def dHSn(series, n):
+    """
+    count number of days with HS above threshold n.
+
+    Parameters
+    ----------
+    series : pd.Series
+    n : float
+
+    Returns
+    -------
+    result : float
+
+    """
+    if series.isna().all():
+        result = np.nan
+    else:
+        result = np.count_nonzero(series.values >= n)
+    return result
+
 def HSmax(series):
     return series.max()
 
