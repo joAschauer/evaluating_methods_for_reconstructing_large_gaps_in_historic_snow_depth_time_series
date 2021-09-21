@@ -73,7 +73,8 @@ def scatterplot(methods_used,
                 filename,
                 dpi=300,
                 no_legend=False,
-                legend_kw=None):
+                legend_kw=None,
+                score_df=sc):
     
     fig, axes = plt.subplots(len(metrics_used),len(methods_used),
                              figsize=[len(methods_used)*2,len(metrics_used)*2.1], 
@@ -114,7 +115,7 @@ def scatterplot(methods_used,
         marker = markers[station_grid]
         for row, metric in enumerate(metrics_used):
             for column, method in enumerate(methods_used):
-                sc.loc[(sc['fill_method']==method) & (sc['station_grid']==station_grid)].plot(xaxs_value,
+                score_df.loc[(score_df['fill_method']==method) & (score_df['station_grid']==station_grid)].plot(xaxs_value,
                                                                                               metric, 
                                                                                               kind='scatter', 
                                                                                               ax=axes[row,column],
@@ -210,7 +211,8 @@ def scatterplot_true_vs_pred(
         no_legend=False,
         legend_kw=None,
         equal_xy_axes=False,
-        fitlines=False
+        fitlines=False,
+        score_df=sc
         ):
 
     fig, axes = plt.subplots(len(climate_metrics),len(methods_used),
@@ -246,7 +248,7 @@ def scatterplot_true_vs_pred(
         marker = markers[station_grid]
         for row, metric in enumerate(climate_metrics):
             for column, method in enumerate(methods_used):
-                sc.loc[(sc['fill_method']==method) & (sc['station_grid']==station_grid)].plot(
+                score_df.loc[(score_df['fill_method']==method) & (score_df['station_grid']==station_grid)].plot(
                     f'{metric}_true',
                     f'{metric}_pred', 
                     kind='scatter', 
@@ -261,7 +263,7 @@ def scatterplot_true_vs_pred(
                 if fitlines:
                     try:
                         linestyles = {'full':'--', 'only_target_stations':':'}
-                        plot_data = sc.loc[(sc['fill_method']==method) & (sc['station_grid']==station_grid)].dropna()
+                        plot_data = score_df.loc[(score_df['fill_method']==method) & (score_df['station_grid']==station_grid)].dropna()
                         true = plot_data[f'{metric}_true']
                         pred = plot_data[f'{metric}_pred']
                         # linear fit to the scatterplot:
@@ -477,7 +479,8 @@ def evaluation_boxplot(methods_used,
                        dpi=300,
                        legend_axis=-1,
                        boxstyle='whisker-box',
-                       showfliers=False):
+                       showfliers=False,
+                       score_df=sc):
     
     plot_func = {'whisker-box': sns.boxplot,
                  'letter-value': sns.boxenplot,
@@ -491,7 +494,7 @@ def evaluation_boxplot(methods_used,
                'RMSE': 'RMSE [cm]',
                'MAAPE': 'MAAPE'}
     
-    plot_data = sc.loc[sc['fill_method'].isin(methods_used)].copy()
+    plot_data = score_df.loc[score_df['fill_method'].isin(methods_used)].copy()
     plot_data.replace(to_replace={'fill_method':pu.METHOD_NAMES}, inplace=True)
     fig, axes = plt.subplots(1,len(metrics_used),
                              figsize=[(len(methods_used)*len(metrics_used))*0.7,10*0.65],
@@ -552,7 +555,8 @@ def scatter_and_boxplot_subgrid(
         filename,
         dpi=300,
         no_legend=False,
-        legend_kw=None):
+        legend_kw=None,
+        score_df=sc):
 
 # methods_used= ['Inverse distance squared',
 #         'GIDS',
@@ -619,7 +623,7 @@ def scatter_and_boxplot_subgrid(
         for row, metric in enumerate(metrics_used):
             for column, method in enumerate(methods_used):
                 outer_ax = axs[(row*len(methods_used))+column]
-                plot_data = sc.loc[(sc['fill_method']==method) & (sc['station_grid']==station_grid)].copy()
+                plot_data = score_df.loc[(score_df['fill_method']==method) & (score_df['station_grid']==station_grid)].copy()
                 plot_data.plot(
                     xaxs_value,
                     metric, 
@@ -648,7 +652,7 @@ def scatter_and_boxplot_subgrid(
                 
                 if station_grid == 'only_target_stations':
                     sns.boxplot(
-                        data = sc.loc[(sc['fill_method']==method)],
+                        data = score_df.loc[(score_df['fill_method']==method)],
                         x = 'fill_method', 
                         y = metric,
                         hue = 'station_grid',
@@ -767,7 +771,8 @@ def scatterboxbins(
         dpi=300,
         no_legend=False,
         legend_kw=None,
-        showfliers=False):
+        showfliers=False,
+        score_df=sc):
     
     fig, axs = plt.subplots(len(metrics_used),len(methods_used),
                              figsize=[len(methods_used)*2,len(metrics_used)*2.1], 
@@ -806,7 +811,7 @@ def scatterboxbins(
     
     for row, metric in enumerate(metrics_used):
         for column, method in enumerate(methods_used):
-            plt_data = sc.loc[(sc['fill_method']==method)].copy()
+            plt_data = score_df.loc[(score_df['fill_method']==method)].copy()
             # binning based on xaxs_val:
             if xaxs_value == 'HSavg_true':
                 bins = np.arange(0,140,20)
