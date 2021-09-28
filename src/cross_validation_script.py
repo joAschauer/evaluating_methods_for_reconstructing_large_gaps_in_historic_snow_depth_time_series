@@ -7,11 +7,13 @@ Created on Tue Nov 24 10:05:40 2020
 
 import pandas as pd
 import numpy as np
+import xarray as xr
 from pathlib import Path
 from collections import OrderedDict
 import json
 
 import gap_modeling as gm
+import era5land_gap_modeling as era5gm
 from cv_split_utils import leave_one_winter_out_splitter
 import scoring_utils as scu
 from cv_results_database import ModeledGap, make_session
@@ -20,6 +22,8 @@ CV_INPUT_DATA = pd.read_csv(
     '../input_data/data_for_cross_validation_non_homogenized.csv',
     parse_dates = ['time'],
     index_col='time')
+
+ERA5_DATA = xr.open_dataset("../input_data/era5land/era5-land_snowdepth_switzerland_05_06_07_UTC.nc")
 
 with open('../input_data/cv_evaluation_stations_non_homogenized.json', mode='r') as f:
         EVAL_STATIONS = [stn.replace('*','') for stn in json.load(f)]
@@ -71,10 +75,20 @@ if __name__ == '__main__':
         #   gm.SWE2HSSnow17(shifted_dates=False,
         #                   n_jobs=-1),
         #   ),
-        ('Snow17_SWE2HS_shifted_dates',
-          gm.SWE2HSSnow17(shifted_dates=True,
-                          n_jobs=-1),
+        # ('Snow17_SWE2HS_shifted_dates',
+        #   gm.SWE2HSSnow17(shifted_dates=True,
+        #                   n_jobs=-1),
+        #   ),
+        ('ERA5land_mean_ratio_scaled',
+          era5gm.ERA5landSingleGridcellFilling(
+              era5_data=ERA5_DATA,
+              scaling='mean_ratio'),
           ),
+        ('ERA5land_no_scaling',
+          era5gm.ERA5landSingleGridcellFilling(
+              era5_data=ERA5_DATA,
+              scaling='no_scaling'),
+         ),
         # # ('random_forest_V3',
         # #  gm.RandomForestFilling3(
         # #      grid_search=False)

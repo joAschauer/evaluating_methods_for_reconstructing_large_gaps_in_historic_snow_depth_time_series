@@ -21,6 +21,8 @@ METHODS = [
     'Elastic Net Regression',
     'RandomForest_V3.5',
     'SWE2HS_Snow17_shifted_dates',
+    'ERA5-land_mean_ratio',
+    'ERA5-land_no_scaling'
     ]
 
 def calculate_dHSn(HS_file, n=1):
@@ -32,6 +34,7 @@ if __name__ == '__main__':
     df = get_cv_results_as_df()
     df = df.loc[df['gap_type']=='LOWO']
     df = df.rename(columns={'bias': 'BIAS'})
+    df = df.loc[df.fill_method.isin(METHODS), :]
 
     for n in {2,3,4,5,10,20,30,40}:
         df[f'dHS{n}_true'] = df.apply(lambda x: calculate_dHSn(x.HS_true_file, n=n), axis=1)
@@ -45,7 +48,7 @@ if __name__ == '__main__':
         METHODS,
         ['dHS1','dHS2','dHS3','dHS4','dHS5','dHS10','dHS20','dHS30','dHS40'],
         filename=f"{plot_output}number_of_snowdays_different_HS_thresholds.png",
-        dpi=500,
+        dpi=150,
         legend_kw={
             'bbox_to_anchor': (0.02, 1.01),
             'loc': 'upper left',
