@@ -9,7 +9,14 @@ import json
 import xarray as xr
 import pandas as pd
 
-from gap_modeling import GapModel, _select_winter_months
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.experimental import enable_halving_search_cv
+from sklearn.model_selection import HalvingGridSearchCV
+
+from gap_modeling import GapModel, RegressionModel, _select_winter_months
 
 
 # Functions for conversion of LV03 to WGS84:
@@ -79,8 +86,8 @@ class ERA5landSingleGridcellFilling(GapModel):
     """
     
     def __init__(self,
-                 era5_data,
-                 scaling='no_scaling'):
+                  era5_data,
+                  scaling='no_scaling'):
 
         assert scaling in {'no_scaling', 'mean_ratio'}
         
@@ -149,13 +156,110 @@ class ERA5landSingleGridcellFilling(GapModel):
 
         if self.scaling == 'no_scaling':
             y_pred = pd.Series(X_gap.values,
-                               index=X_gap.index,
-                               name=self.method)
+                                index=X_gap.index,
+                                name=self.method)
 
         if self.scaling == 'mean_ratio':
             ratio = y_train.mean() / X_train.mean()
             y_pred = pd.Series(X_gap.mul(ratio).values,
-                               index=X_gap.index,
-                               name=self.method)
+                                index=X_gap.index,
+                                name=self.method)
         
         return self._postprocess_predictions(y_pred)
+
+
+class ERA5landRandomForestSurroundingGridcellsFilling(RegressionModel):
+    """
+    Downscale from 9 surrounding gridcells with RandomForest.
+
+    Parameters
+    ----------
+    era5_data : xr.Dataset
+        xarray dataset containing ERA5-land data.
+    max_depth
+
+    """
+    
+    def __init__(self,
+                 era5_data,
+                 forest_max_depth=70,
+                 forest_n_estimators=200):
+
+        self.method = f'ERA5-land_RF_surrounding_gridcells_max_depth_{forest_max_depth}_n_estimators_{forest_n_estimators}'
+        self.era5_data = era5_data
+        
+        preprocessor = ColumnTransformer(
+            transformers=[('cat', OneHotEncoder(), ['season'])],
+            remainder=StandardScaler())
+        self.model = Pipeline(
+            [('preprocess', preprocessor),
+             ('forest', RandomForestRegressor(max_depth=forest_max_depth,
+                                              n_estimators=forest_n_estimators,
+                                              n_jobs=-1))])
+
+
+
+    def train_gap_split(self,
+                        cv_input_data,
+                        train_period,
+                        gap_period,
+                        gap_station):
+        
+        # get coordinates from station (in LV03)
+        X = cv_input_data.loc[cv_input_data['stn']==gap_station,'X'].mean()
+        Y = cv_input_data.loc[cv_input_data['stn']==gap_station,'Y'].mean()
+        
+        # exctract data from 9 sourrounding ERA5 gridcells
+        closest_point = self.era5_data.sel(
+            latitude=_CHtoWGSlat(X, Y),
+            longitude=_CHtoWGSlon(X, Y),
+            method='nearest')
+        
+        lat_closest_point = float(closest_point.latitude)
+        lon_closest_point = float(closest_point.longitude)
+        
+        nine_grid_mask = self.era5_data.where((self.era5_data.latitude >= lat_closest_point-0.101) & 
+                                              (self.era5_data.latitude <= lat_closest_point+0.101) & 
+                                              (self.era5_data.longitude >= lon_closest_point-0.101) & 
+                                              (self.era5_data.longitude <= lon_closest_point+0.101),
+                                              drop=True)
+        
+        grid_data = nine_grid_mask['sde'].to_dataframe().unstack(level=['latitude','longitude'])
+        grid_data.columns = grid_data.columns.map(lambda x: '_'.join([str(i) for i in x]))
+        
+        # take mean from 7 and 8 am from ERA5
+        grid_data = (grid_data
+            .between_time('5:00', '6:00', include_start=True, include_end=True) #measurements between 7 and 8 am local swiss time
+            .resample("D")
+            .mean()
+            )
+        grid_data = grid_data.div(0.01) #conversion to cm
+        
+        station_data = cv_input_data.loc[cv_input_data['stn']==gap_station, 'HS']
+        #merge era5 and measured station data to one df
+        data = pd.concat([station_data, grid_data], axis=1)
+        
+        # split in gap and train period:
+        train_data = (data
+            .loc[train_period,:]
+            .pipe(_select_winter_months)
+            )
+        gap_data = (data
+            .loc[gap_period,:]
+            .pipe(_select_winter_months)
+            )
+        
+        y_train = train_data.loc[:, 'HS']
+        X_train = train_data.drop(columns='HS')
+        y_gap = gap_data.loc[:, 'HS']
+        X_gap = gap_data.drop(columns='HS')
+        
+        # mapping for months to seasons:
+        seasons = {11: 'early', 12: 'early',
+                   1: 'mid', 2: 'mid',
+                   3: 'late', 4: 'late'}
+        
+        X_train['season'] = X_train.index.month.map(seasons)
+        X_gap['season'] = X_gap.index.month.map(seasons)
+        
+        return y_train, X_train, y_gap, X_gap

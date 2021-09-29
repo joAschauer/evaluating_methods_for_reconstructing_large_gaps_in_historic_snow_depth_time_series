@@ -79,15 +79,21 @@ if __name__ == '__main__':
         #   gm.SWE2HSSnow17(shifted_dates=True,
         #                   n_jobs=-1),
         #   ),
-        ('ERA5land_mean_ratio_scaled',
-          era5gm.ERA5landSingleGridcellFilling(
+        # ('ERA5land_mean_ratio_scaled',
+        #   era5gm.ERA5landSingleGridcellFilling(
+        #       era5_data=ERA5_DATA,
+        #       scaling='mean_ratio'),
+        #   ),
+        # ('ERA5land_no_scaling',
+        #   era5gm.ERA5landSingleGridcellFilling(
+        #       era5_data=ERA5_DATA,
+        #       scaling='no_scaling'),
+        #  ),
+        ('ERA5land_RF_9_gridcells_01',
+          era5gm.ERA5landRandomForestSurroundingGridcellsFilling(
               era5_data=ERA5_DATA,
-              scaling='mean_ratio'),
-          ),
-        ('ERA5land_no_scaling',
-          era5gm.ERA5landSingleGridcellFilling(
-              era5_data=ERA5_DATA,
-              scaling='no_scaling'),
+              forest_max_depth=70,
+              forest_n_estimators=200),
          ),
         # # ('random_forest_V3',
         # #  gm.RandomForestFilling3(

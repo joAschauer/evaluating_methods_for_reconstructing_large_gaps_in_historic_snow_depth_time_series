@@ -31,8 +31,9 @@ METHODS = [
     'Elastic Net Regression',
     'RandomForest_V3.5',
     'SWE2HS_Snow17_shifted_dates',
-    'ERA5-land_mean_ratio',
-    'ERA5-land_no_scaling'
+    # 'ERA5-land_mean_ratio',
+    # 'ERA5-land_no_scaling',
+    'ERA5-land_RF_surrounding_gridcells_max_depth_70_n_estimators_200'
     ]
 
 def main():

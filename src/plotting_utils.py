@@ -37,7 +37,8 @@ METHOD_NAMES = {
     'RandomForest_V4': 'RandomForest_V4',
     'RandomForest_V4.1': 'RandomForest_V4.1',
     'ERA5-land_mean_ratio':'ERA5mr',
-    'ERA5-land_no_scaling':'ERA5nos'}
+    'ERA5-land_no_scaling':'ERA5nos',
+    'ERA5-land_RF_surrounding_gridcells_max_depth_70_n_estimators_200':'ERA5RF'}
 
 GRIDLABELS = {
     'full':'dense station network',
