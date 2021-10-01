@@ -81,7 +81,7 @@ if __name__ == '__main__':
         df[f'dHS{n}_abs_diff'] = df[f'dHS{n}_true'].sub(df[f'dHS{n}_pred']).abs()
     cv_evaluate_scores.scatterboxbins(
         METHODS,
-        metrcs_used=['dHS1_abs_diff',
+        metrics_used=['dHS1_abs_diff',
                      'dHS2_abs_diff',
                      'dHS5_abs_diff',
                      'dHS10_abs_diff',
@@ -90,5 +90,24 @@ if __name__ == '__main__':
         filename=f'{plot_output}scatterbox_dHSn_abs_diff_vs_HSavg.png',
         dpi=600,
         legend_kw={'bbox_to_anchor':'below_titles'},
-        showfliers=True
+        showfliers=True,
+        score_df=df
+        )
+    
+    
+    for n in {2,5,10,30}:
+        df[f'dHS{n}_diff'] = df[f'dHS{n}_true'].sub(df[f'dHS{n}_pred'])
+    cv_evaluate_scores.scatterboxbins(
+        METHODS,
+        metrics_used=['dHS1_diff',
+                     'dHS2_diff',
+                     'dHS5_diff',
+                     'dHS10_diff',
+                     'dHS30_diff'],
+        xaxs_value='HSavg_true',
+        filename=f'{plot_output}scatterbox_dHSn_diff_vs_HSavg.png',
+        dpi=600,
+        legend_kw={'bbox_to_anchor':'below_titles'},
+        showfliers=True,
+        score_df=df
         )

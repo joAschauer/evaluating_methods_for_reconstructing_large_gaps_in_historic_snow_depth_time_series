@@ -261,7 +261,8 @@ def make_paper_figure_boxplots(filename=None,
         data=plot_data,
         order=[pu.METHOD_NAMES[m] for m in methods_used],
         ax=ax1,
-        showfliers=False
+        showfliers=False,
+        medianprops={'color':'yellow'}
         )
     
     p1.legend_.set_title('max. number of\npredictor stations')
@@ -281,7 +282,8 @@ def make_paper_figure_boxplots(filename=None,
         data=plot_data,
         order=[pu.METHOD_NAMES[m] for m in methods_used],
         ax=ax2,
-        showfliers=False
+        showfliers=False,
+        medianprops={'color':'yellow'}
         )
     
     

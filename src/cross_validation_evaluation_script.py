@@ -30,22 +30,19 @@ METHODS = [
     'matiu vertical weighted_min_corr_-1.0',
     'Elastic Net Regression',
     'RandomForest_V3.5',
-    'SWE2HS_Snow17_shifted_dates',
-    # 'ERA5-land_mean_ratio',
-    # 'ERA5-land_no_scaling',
-    'ERA5-land_RF_surrounding_gridcells_max_depth_70_n_estimators_200'
+    'SWE2HS_Snow17_shifted_dates'
     ]
 
 def main():
     
-    # # run the different evaluation scripts (generates a lot of figures
-    # # for exploration, figure storage locations are logged)
+    # run the different evaluation scripts (generates a lot of figures
+    # for exploration, figure storage locations are logged)
     
-    # cv_evaluate_scores.main(METHODS)
-    # cv_evaluate_good_and_bad_examples.main(methods_used=METHODS)
-    # cv_evaluate_climate_indices_timeseries.main(methods_used=METHODS)
-    # cv_evaluate_true_vs_pred_daily.main(methods_used=METHODS)
-    # station_elevation_distribution.main()
+    cv_evaluate_scores.main(METHODS)
+    cv_evaluate_good_and_bad_examples.main(methods_used=METHODS)
+    cv_evaluate_climate_indices_timeseries.main(methods_used=METHODS)
+    cv_evaluate_true_vs_pred_daily.main(methods_used=METHODS)
+    station_elevation_distribution.main()
     
     
     # Make Figures for the paper and save to PAPER_FIGURE_DIR
@@ -68,14 +65,14 @@ def main():
         )
     
     
-    # DAILY VALUES / SCORES:
-    # ----------------------
+    # # DAILY VALUES / SCORES:
+    # # ----------------------
     
     # FIGURE 3: Scatterplots of reconstructed vs true daily values
     cv_evaluate_true_vs_pred_daily.scatterplot_true_pred_daily(
         METHODS,
         f'{PAPER_FIGURE_DIR}fig03_scatter_true_pred_daily.png',
-        dpi=700,
+        dpi=600,
         equal_xy_axes=True)
     
     # Scatterplots rmse/MAAPE vs HSavg along with boxplots:
@@ -84,7 +81,7 @@ def main():
         ['RMSE', 'BIAS'],
         'HSavg_true',
         filename=f'{PAPER_FIGURE_DIR}figA01_scatterbox_RMSE_BIAS_vs_HSavg.png',
-        dpi=1000,
+        dpi=600,
         legend_kw={
             'bbox_to_anchor':'below_titles',
             'frameon': True},
@@ -95,7 +92,7 @@ def main():
         METHODS,
         ['RMSE', 'BIAS'],
         f'{PAPER_FIGURE_DIR}figA02_boxplot_RMSE_BIAS.png',
-        dpi=700,
+        dpi=600,
         showfliers=False)
     
     
@@ -111,7 +108,11 @@ def main():
         legend_kw={
             'bbox_to_anchor':'below_titles'},
         equal_xy_axes=True,
-        fitlines=True)
+        fitlines=True,
+        print_score_values=False,
+        markersize=10)
+    
+    
 
     # FIGURE 6: scatterplot climate metrics abs. error vs. HSavg:
     cv_evaluate_scores.scatterboxbins(
@@ -119,7 +120,7 @@ def main():
         ['HSavg_abs_diff', 'HSmax_abs_diff', 'dHS1_abs_diff'],
         'HSavg_true',
         filename=f'{PAPER_FIGURE_DIR}fig05_scatterbox_climate_metrics_abs_diff_vs_HSavg.png',
-        dpi=1000,
+        dpi=600,
         legend_kw={'bbox_to_anchor':'below_titles'},
         showfliers=True
         )
@@ -130,11 +131,43 @@ def main():
         ['HSavg_diff', 'HSmax_diff', 'dHS1_diff'],
         'HSavg_true',
         filename=f'{PAPER_FIGURE_DIR}fig06_1_scatterbox_climate_metrics_diff_vs_HSavg.png',
-        dpi=1000,
+        dpi=600,
         legend_kw={'bbox_to_anchor':'below_titles'},
         showfliers=False
         )
 
+    # ERA5-land figures:
+    cv_evaluate_scores.scatterplot_true_vs_pred(
+        ['ERA5-land_no_scaling',
+          'ERA5-land_mean_ratio',
+          'ERA5-land_RF_surrounding_gridcells_max_depth_70_n_estimators_200'
+          ],
+        ['HSavg','HSmax','dHS1'],
+        f'{PAPER_FIGURE_DIR}era5land_scatter_true_pred_climate_metrics.png',
+        dpi=500,
+        legend_kw={
+            'bbox_to_anchor':'below_titles'},
+        equal_xy_axes=True,
+        fitlines=True,
+        print_score_values=True,
+        panel_height=2.9,
+        panel_width=2.5,
+        sharex=False,
+        sharey=False,
+        individual_panel_labels=True,
+        global_x_label='measured [cm or days]',
+        global_y_label='modeled [cm or days]')
+    
+    cv_evaluate_true_vs_pred_daily.scatterplot_true_pred_daily(
+        ['ERA5-land_no_scaling',
+          'ERA5-land_mean_ratio',
+          'ERA5-land_RF_surrounding_gridcells_max_depth_70_n_estimators_200'
+          ],
+        f'{PAPER_FIGURE_DIR}era5land_scatter_true_pred_daily.png',
+        dpi=600,
+        equal_xy_axes=True)
+    
+    
 
 if __name__ =='__main__':
     main()

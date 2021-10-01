@@ -212,12 +212,21 @@ def scatterplot_true_vs_pred(
         legend_kw=None,
         equal_xy_axes=False,
         fitlines=False,
-        score_df=sc
+        print_score_values=False,
+        score_df=sc,
+        panel_height=2.25,
+        panel_width=2.1,
+        sharex=False,
+        sharey=False,
+        individual_panel_labels=False,
+        global_x_label='measured [cm or days]',
+        global_y_label='modeled [cm or days]',
+        markersize=5
         ):
 
     fig, axes = plt.subplots(len(climate_metrics),len(methods_used),
-                             figsize=[len(methods_used)*2.1,len(climate_metrics)*2.5], 
-                             sharex=False, sharey=False)
+                             figsize=[len(methods_used)*panel_width,len(climate_metrics)*panel_height], 
+                             sharex=sharex, sharey=sharey)
     
     #different markers and colors for different station grids:
     markers={'full': "s",
@@ -255,6 +264,7 @@ def scatterplot_true_vs_pred(
                     ax=axes[row,column],
                     color=color,
                     marker=marker,
+                    s=markersize,
                     alpha=0.4,
                     label=station_grid)
 
@@ -288,21 +298,28 @@ def scatterplot_true_vs_pred(
 
                 # y-labels
                 if column == 0:
-                    axes[row,column].set_ylabel(f'{metric} modeled{units[metric]}', fontsize=11)
+                    if individual_panel_labels:
+                        axes[row,column].set_ylabel(f'{metric} modeled{units[metric]}', fontsize=11)
+                    else:
+                        axes[row,column].set_ylabel(f'{metric}', fontsize=13)
+                        axes[row,column].yaxis.set_label_coords(-0.4,0.5)
                 else:
                     axes[row,column].set_ylabel(None)
                     axes[row,column].tick_params(labelleft=False)
                 
-                axes[row,column].set_xlabel(f'{metric} measured{units[metric]}',
-                                            fontsize=11)
-
+                if individual_panel_labels:
+                    axes[row,column].set_xlabel(f'{metric} measured{units[metric]}',
+                                                fontsize=11)
+                else:
+                    axes[row,column].set_xlabel(None)
+                
                 # titles
                 if row == 0:
                     axes[row,column].set_title(pu.METHOD_NAMES[method], fontsize=13)
                     if legend_kw['bbox_to_anchor']=='below_titles':
                         axes[row,column].set_title(f'{pu.METHOD_NAMES[method]}\n', fontsize=13)
     
-    if fitlines:
+    if print_score_values:
         # Annotations with mixed colors: extremely hacky...
         for score_metric in ['rmse','r2','bias']:
             for row, metric in enumerate(climate_metrics):
@@ -323,7 +340,7 @@ def scatterplot_true_vs_pred(
                         score_sparse = score_annotations[f"{method}{metric}only_target_stations{score_metric}"]
                         plt.rcParams.update({
                                 "text.usetex": True})
-                        fs = 12.5
+                        fs = 11.5
     
                         
                         x_pos = {'full':0.80, 'only_target_stations':0.99}
@@ -420,7 +437,11 @@ def scatterplot_true_vs_pred(
     # draw x=y line:
     for ax in axes.flatten():
         ax.axline([0, 0], [1, 1], color='k',lw=0.9)
-            
+    
+    if not individual_panel_labels:
+        fig.text(0.5, 0.0, global_x_label, ha='center', va='center')
+        fig.text(0.04, 0.5, global_y_label, ha='center', va='center', rotation='vertical')
+    
     plt.tight_layout()
     if no_legend:
         if filename is not None:
@@ -447,7 +468,7 @@ def scatterplot_true_vs_pred(
         
         if legend_kw['bbox_to_anchor']=='below_titles':
             legend_kw['loc'] = 'upper center'
-            legend_kw['bbox_to_anchor'] = (0.515, 0.96)
+            legend_kw['bbox_to_anchor'] = (0.515, 0.955)
             legend_kw['borderaxespad'] = 0.
             legend_kw['ncol'] = 2
             legend_kw['fancybox'] = False
@@ -515,6 +536,7 @@ def evaluation_boxplot(methods_used,
             # sym='',
             showfliers=showfliers,
             flierprops={'marker':'x'},
+            medianprops={'color':'yellow'},
             ax=ax)
 
         try:
@@ -661,6 +683,7 @@ def scatter_and_boxplot_subgrid(
                         # sym='',
                         # showfliers=False,
                         flierprops={'marker':'x'},
+                        medianprops={'color':'yellow'},
                         ax=outer_ax[1])
                     for ax in outer_ax:
                         ax.get_legend().remove()
@@ -832,6 +855,7 @@ def scatterboxbins(
                 showfliers=showfliers,
                 flierprops={'marker':'d',
                             'markersize':2},
+                medianprops={'color':'yellow'},
                 ax=axs[row,column])
             
             axs[row,column].get_legend().remove()
