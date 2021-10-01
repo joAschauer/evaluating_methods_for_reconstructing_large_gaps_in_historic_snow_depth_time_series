@@ -1,0 +1,22 @@
+\begin{table}[t]
+\centering
+\begin{tabular}{llrrrrrr}
+\tophline
+     & \textbf{station network} & \multicolumn{3}{l}{dense station network} & \multicolumn{3}{l}{evaluation stations only} \\
+     & \textbf{method} &              ERA5nobc & ERA5mrbc & ERA5rf &                 ERA5nobc & ERA5mrbc & ERA5rf \\
+\textbf{climate metric} & \textbf{score metric} &                       &          &        &                          &          &        \\
+\middlehline
+\multirow{3}{*}{\textbf{HSavg}} & \textbf{$r^{2}$} &                -10.51 &     0.84 &   0.86 &                   -10.51 &     0.84 &   0.86 \\
+     & \textbf{RMSE} &                 73.69 &     8.68 &   8.14 &                    73.69 &     8.68 &   8.17 \\
+     & \textbf{BIAS} &                 53.13 &    -0.02 &   0.25 &                    53.13 &    -0.02 &   0.24 \\
+\cline{1-8}
+\multirow{3}{*}{\textbf{HSmax}} & \textbf{$r^{2}$} &                 -3.99 &     0.50 &   0.78 &                    -3.99 &     0.50 &   0.78 \\
+     & \textbf{RMSE} &                100.16 &    31.69 &  21.08 &                   100.16 &    31.69 &  21.13 \\
+     & \textbf{BIAS} &                 72.21 &   -21.62 &  -6.84 &                    72.21 &   -21.62 &  -6.82 \\
+\cline{1-8}
+\multirow{3}{*}{\textbf{dHS1}} & \textbf{$r^{2}$} &                 -1.74 &    -0.60 &   0.52 &                    -1.74 &    -0.60 &   0.52 \\
+     & \textbf{RMSE} &                 91.51 &    69.74 &  38.05 &                    91.51 &    69.74 &  38.04 \\
+     & \textbf{BIAS} &                 78.51 &    56.46 &  27.82 &                    78.51 &    56.46 &  27.96 \\
+\bottomhline
+\end{tabular}
+\end{table}
